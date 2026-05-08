@@ -10,13 +10,23 @@ const STORES=[
   {id:"rikkyo_niiza",name:"立教大学 新座キャンパス店",nameEn:"Rikkyo Niiza Campus",nameShort:"新座",color:"#2d6a3f",campus:"新座キャンパス",hours:"平日 10:00〜16:00 ／ 土 10:00〜14:00",hoursEn:"Mon-Fri 10:00-16:00 / Sat 10:00-14:00",sem:[["2026-04-10","2026-07-20"],["2026-09-22","2027-01-23"]],vac:[["2026-01-01","2026-04-09"],["2026-07-21","2026-09-21"],["2026-12-25","2027-01-06"]],special:[["2026-05-01","2026-05-04"],["2026-10-31","2026-11-05"],["2027-01-07","2027-01-07"],["2027-01-15","2027-01-15"],["2027-01-16","2027-01-16"]],openHolidays:["2026-04-29","2026-05-05","2026-05-06"]},
 ];
 
-// ===== 毎週ここだけ書き換え（上智・池袋共通） =====
-const WEEKLY={
+// ===== 上智 週替わり（毎週ここを書き換え） =====
+const WEEKLY_SOPHIA={
   period:"5/6（火）〜5/10（土）", periodEn:"May 6-10, 2026",
   items:[
     {ja:"週替わりカレー",en:"Weekly Curry",   detail:"豆カレー",detailEn:"This Week's Curry",emoji:"🍛",price:600},
-    {ja:"週替わり定食", en:"Weekly Set Meal",detail:"チキンハンバーグトマト煮込み",          detailEn:"This Week's Set",       emoji:"🍗",price:600},
-    {ja:"週替わり丼",  en:"Weekly Bowl",    detail:"スパイシーキーマ丼",             detailEn:"This Week's Bowl",          emoji:"🥚",price:600},
+    {ja:"週替わり定食", en:"Weekly Set Meal",detail:"チキンハンバーグトマト煮込み",detailEn:"This Week's Set",emoji:"🍗",price:600},
+    {ja:"週替わり丼",  en:"Weekly Bowl",    detail:"スパイシーキーマ丼",detailEn:"This Week's Bowl",emoji:"🥚",price:600},
+  ]
+};
+
+// ===== 池袋 週替わり（毎週ここを書き換え） =====
+const WEEKLY_IKEBUKURO={
+  period:"5/6（火）〜5/10（土）", periodEn:"May 6-10, 2026",
+  items:[
+    {ja:"週替わりカレー",en:"Weekly Curry",   detail:"",detailEn:"This Week's Curry",emoji:"🍛",price:600},
+    {ja:"週替わり定食", en:"Weekly Set Meal",detail:"",detailEn:"This Week's Set",emoji:"🍗",price:600},
+    {ja:"週替わり丼",  en:"Weekly Bowl",    detail:"",detailEn:"This Week's Bowl",emoji:"🥚",price:600},
   ]
 };
 // ================================
@@ -68,15 +78,19 @@ function getStatus(store,ds){
   for(const [a,b] of store.sem)if(inR(ds,a,b))return dow===6?"open_sat":"open";
   return"vacation";
 }
-let sid="rikkyo_ikebukuro",tab="menu",calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),selDay=null;
-
+function getWeekly(){
+  if(sid==="sophia") return WEEKLY_SOPHIA;
+  return WEEKLY_IKEBUKURO;
+}
 function getRegularMenu(){
   return sid==="rikkyo_niiza" ? REGULAR_NIIZA : REGULAR_BASE;
 }
+let sid="rikkyo_ikebukuro",tab="menu",calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),selDay=null;
 
 function render(){
   const store=STORES.find(s=>s.id===sid);
   const regular=getRegularMenu();
+  const WEEKLY=getWeekly();
   const c=store.color;
   const todayDs=dStr(new Date().getFullYear(),new Date().getMonth(),new Date().getDate());
   const isNiiza=sid==="rikkyo_niiza";
@@ -92,8 +106,8 @@ function render(){
     <div style="display:flex;gap:6px">${STORES.map(s=>`<button onclick="setSid('${s.id}')" style="flex:1;padding:8px 4px;border-radius:20px;border:none;background:${sid===s.id?s.color:'#222'};color:${sid===s.id?'#fff':'#666'};font-size:12px;font-weight:${sid===s.id?700:400}">${s.nameShort}</button>`).join("")}</div>
   </div>
   <div style="display:flex;background:#fff;border-bottom:1px solid #eee">
-    <button onclick="setTab('menu')" style="flex:1;padding:11px 0;border:none;border-bottom:${tab==='menu'?`2.5px solid ${c}`:'2.5px solid transparent'};background:transparent;color:${tab==='menu'?c:'#aaa'};font-weight:${tab==='menu'?700:400};font-size:13px">🍽️ メニュー</button>
-    <button onclick="setTab('calendar')" style="flex:1;padding:11px 0;border:none;border-bottom:${tab==='calendar'?`2.5px solid ${c}`:'2.5px solid transparent'};background:transparent;color:${tab==='calendar'?c:'#aaa'};font-weight:${tab==='calendar'?700:400};font-size:13px">📅 カレンダー</button>
+    <button onclick="setTab('menu')" style="flex:1;padding:11px 0;border:none;border-bottom:${tab==="menu"?`2.5px solid ${c}`:"2.5px solid transparent"};background:transparent;color:${tab==="menu"?c:"#aaa"};font-weight:${tab==="menu"?700:400};font-size:13px">🍽️ メニュー</button>
+    <button onclick="setTab('calendar')" style="flex:1;padding:11px 0;border:none;border-bottom:${tab==="calendar"?`2.5px solid ${c}`:"2.5px solid transparent"};background:transparent;color:${tab==="calendar"?c:"#aaa"};font-weight:${tab==="calendar"?700:400};font-size:13px">📅 カレンダー</button>
   </div>
   <div style="margin:12px 14px 0;padding:12px 14px;background:#fff;border-radius:12px;border-left:4px solid ${c}">
     <div style="font-size:14px;font-weight:700;color:#111">${store.name}</div>
@@ -104,9 +118,7 @@ function render(){
 
   if(tab==="menu"){
     html+=`<div style="padding:14px 14px 0">`;
-
     if(isNiiza){
-      // 新座：週替わりなし、固定メニューのみ
       html+=`<div style="background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;border-left:4px solid ${c}">
         <div style="font-size:12px;color:${c};font-weight:700;margin-bottom:4px">🌟 新座キャンパス店メニュー</div>
         <div style="font-size:11px;color:#888">Niiza Campus Menu</div>
@@ -114,10 +126,10 @@ function render(){
       <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.07);margin-bottom:12px">`;
       regular.forEach((item,i)=>{
         const isKenpo=item.emoji==="💚";
-        html+=`<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;${i<regular.length-1?'border-bottom:1px solid #f3f3f3':''}${isKenpo?`;background:#f0f8f2`:''}">
+        html+=`<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;${i<regular.length-1?"border-bottom:1px solid #f3f3f3":""}${isKenpo?";background:#f0f8f2":""}">
           <span style="font-size:20px;flex-shrink:0">${item.emoji}</span>
           <div style="flex:1">
-            <div style="font-size:14px;font-weight:600;color:#111">${item.ja}${item.note?`<span style="font-size:10px;color:#888;margin-left:6px;background:#f3f3f3;padding:2px 6px;border-radius:8px">${item.note}</span>`:''}</div>
+            <div style="font-size:14px;font-weight:600;color:#111">${item.ja}${item.note?`<span style="font-size:10px;color:#888;margin-left:6px;background:#f3f3f3;padding:2px 6px;border-radius:8px">${item.note}</span>`:""}</div>
             <div style="font-size:10px;color:#bbb;margin-top:1px">${item.en}</div>
           </div>
           <div style="font-size:17px;font-weight:800;color:${c};flex-shrink:0">¥${item.price}</div>
@@ -125,7 +137,6 @@ function render(){
       });
       html+=`</div>`;
     } else {
-      // 上智・池袋：週替わり＋レギュラー
       html+=`<div style="background:linear-gradient(135deg,${c},${c}cc);border-radius:18px;overflow:hidden;margin-bottom:14px">
         <div style="padding:16px 18px 10px;display:flex;justify-content:space-between;align-items:flex-start">
           <div>
@@ -144,7 +155,6 @@ function render(){
               <div style="color:#fff;font-size:14px;font-weight:700">${item.ja}</div>
               <div style="color:rgba(255,255,255,0.5);font-size:9px;margin-top:1px">${item.en}</div>
               <div style="color:rgba(255,255,255,0.9);font-size:12px;margin-top:3px">${item.detail}</div>
-              <div style="color:rgba(255,255,255,0.45);font-size:10px">${item.detailEn}</div>
             </div>
             <div style="color:#fff;font-size:20px;font-weight:900;flex-shrink:0">¥${item.price}</div>
           </div>`).join("")}
@@ -152,7 +162,7 @@ function render(){
       </div>
       <div style="font-size:11px;color:#999;font-weight:700;letter-spacing:0.1em;margin-bottom:8px">レギュラーメニュー <span style="font-weight:400;color:#ccc">Regular Menu</span></div>
       <div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.07);margin-bottom:12px">
-        ${regular.map((item,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;${i<regular.length-1?'border-bottom:1px solid #f3f3f3':''}">
+        ${regular.map((item,i)=>`<div style="display:flex;align-items:center;gap:12px;padding:13px 16px;${i<regular.length-1?"border-bottom:1px solid #f3f3f3":""}">
           <span style="font-size:20px;flex-shrink:0">${item.emoji}</span>
           <div style="flex:1">
             <div style="font-size:14px;font-weight:600;color:#111">${item.ja}</div>
@@ -162,7 +172,6 @@ function render(){
         </div>`).join("")}
       </div>`;
     }
-
     html+=`<div style="padding:12px 14px;background:#fff;border-radius:12px;border-left:4px solid #c8973a;font-size:11px;color:#888;line-height:1.8;margin-bottom:12px">
       <span style="color:#b8832a;font-weight:700">ℹ️ ご注意 / Notice</span><br>
       メニューは仕入れ状況により変更になる場合があります。<br>
@@ -196,9 +205,9 @@ function render(){
     for(let day=1;day<=daysInM;day++){
       const ds2=dStr(calYear,calMonth,day),st=getStatus(store,ds2),si=SI[st];
       const isOpen=st==="open"||st==="open_sat",isTd=ds2===todayDs,isSel=selDay===day,dow=pd(ds2).getDay();
-      cells+=`<div onclick="selDay=${isSel?'null':day};render()" style="border-radius:10px;cursor:pointer;text-align:center;padding:6px 2px 5px;min-height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:${isSel?c:(isOpen?c+'1a':(si.bg||'#f3f4f6'))};border:${isTd?`2px solid ${c}`:'2px solid transparent'}">
-        <div style="font-size:13px;font-weight:${isTd?800:500};color:${isSel?'#fff':(dow===0?'#e53e3e':dow===6?'#3182ce':isOpen?'#111':'#bbb')}">${day}</div>
-        <div style="font-size:8px;margin-top:1px;font-weight:600;color:${isSel?'rgba(255,255,255,0.8)':(isOpen?c:'#ccc')}">${isOpen?(st==="open_sat"?"土":"●"):si.mark}</div>
+      cells+=`<div onclick="selDay=${isSel?"null":day};render()" style="border-radius:10px;cursor:pointer;text-align:center;padding:6px 2px 5px;min-height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:${isSel?c:(isOpen?c+"1a":(si.bg||"#f3f4f6"))};border:${isTd?`2px solid ${c}`:"2px solid transparent"}">
+        <div style="font-size:13px;font-weight:${isTd?800:500};color:${isSel?"#fff":(dow===0?"#e53e3e":dow===6?"#3182ce":isOpen?"#111":"#bbb")}">${day}</div>
+        <div style="font-size:8px;margin-top:1px;font-weight:600;color:${isSel?"rgba(255,255,255,0.8)":(isOpen?c:"#ccc")}">${isOpen?(st==="open_sat"?"土":"●"):si.mark}</div>
       </div>`;
     }
     let sd="";
@@ -240,7 +249,7 @@ function render(){
         <button onclick="nextM()" style="background:none;border:none;font-size:24px;color:#555;padding:4px 12px">›</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px">
-        ${DW.map((d,i)=>`<div style="text-align:center;font-size:11px;font-weight:600;padding:3px 0;color:${i===0?'#e53e3e':i===6?'#3182ce':'#888'}">${d}</div>`).join("")}
+        ${DW.map((d,i)=>`<div style="text-align:center;font-size:11px;font-weight:600;padding:3px 0;color:${i===0?"#e53e3e":i===6?"#3182ce":"#888"}">${d}</div>`).join("")}
       </div>
       <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">${cells}</div>
       <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;padding:10px 14px;background:#fff;border-radius:10px">
